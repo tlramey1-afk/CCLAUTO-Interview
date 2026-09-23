@@ -11,7 +11,28 @@ class_B = "172.16.0.0"
 class_C = "192.168.1.0"
 mask = args.mask
 
-def api_call():
+def api_call(mask):
+     api = f"https://networkcalc.com/api/ip/{mask}"
+    try:
+        response = requests.get(api)
+        response.raise_for_status()
+        result = response.json()
+        
+        if result.get("status") != "OK":
+            print(f"Error: API returned status '{result.get('status', 'UNKNOWN')}'", file=sys.stderr)
+            sys.exit(1)
+            
+        data = result.get("data", {})
+        hosts = data.get("maximum_addresses")
+        first_ip = data.get("network_address")
+        subnet_mask = data.get("subnet_mask")
+        subnet_bits = data.get("cidr")
+        
+        return hosts, first_ip, subnet_mask, subnet_bits
+    except requests.RequestException as e:
+        print(f"Error making API request: {e}", file=sys.stderr)
+        sys.exit(1)
+
     data = requests.get(url).json()
     global hosts, first_ip, subnet_mask, subnet_bits
 
